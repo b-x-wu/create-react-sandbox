@@ -1,8 +1,10 @@
 # Create React Sandbox
 
+[![Testing on Linux](https://github.com/bruce-x-wu/create-react-sandbox/actions/workflows/workflow.yml/badge.svg)](https://github.com/bruce-x-wu/create-react-sandbox/actions/workflows/workflow.yml)
+
 Create a lightweight React sandbox on your local system that runs like [Create React App](https://github.com/facebook/create-react-app) but without all the dependencies.
 
-So far, Create React Sandbox has been tested on Windows. If something does not work, on Windows or otherwise, please file an issue.
+So far, Create React Sandbox has been tested on Windows and on an Ubuntu Github workflow. If something does not work, on Windows or otherwise, please file an issue.
 
 ## Getting Started
 
