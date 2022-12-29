@@ -1,12 +1,20 @@
 {
   "name": "create-react-sandbox",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Create a lightweight React sandbox on your local system that runs like Create React App but without all the dependencies.",
   "author": "Bruce Wu <wu.bruce.x@gmail.com>",
   "license": "ISC",
   "bin": {
     "create-react-sandbox": "bin/index.js"
   },
-  "keywords": ["react", "create-react-app", "sandbox", "boilerplate"],
-  "homepage": "https://github.com/bruce-x-wu/create-react-sandbox"
+  "keywords": [
+    "react",
+    "create-react-app",
+    "sandbox",
+    "boilerplate"
+  ],
+  "homepage": "https://github.com/bruce-x-wu/create-react-sandbox",
+  "dependencies": {
+    "loading-spinner": "^1.2.1"
+  }
 }
