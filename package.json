@@ -1,0 +1,11 @@
+{
+  "name": "create-react-sandbox",
+  "version": "0.1.0",
+  "description": "Create a lightweight React sandbox on your local system that runs like Create React App but without all the dependencies.",
+  "main": "index.js",
+  "author": "Bruce Wu",
+  "license": "ISC",
+  "bin": {
+    "create-react-sandbox": "bin/index.js"
+  }
+}
