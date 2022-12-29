@@ -28,4 +28,4 @@ jobs:
         cache: 'npm'
     - run: npm i -g
     - run: cd .. && mkdir react-sandbox-test && cd react-sandbox-test && npx create-react-sandbox client
-    - run: cd client && npm run build
+    - run: cd ../react-sandbox-test/client && npm run build
