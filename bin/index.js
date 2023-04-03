@@ -66,20 +66,20 @@ function installDependencies(sandboxDirectory, onData, onErr, onExit) {
  * Run the main thread of the program
  */
 async function main() {
-    const options = getCommandLineArgs()
-    const sandboxDirectory = options.sandboxDirectory
+    const { sandboxDirectory, typescript: isTypescript } = getCommandLineArgs()
 
     process.stdout.write('Initializing the sandbox ')
     loadingSpinner.start(SPINNER_SPEED, SPINNER_OPTIONS)
 
     // TODO: catch the directory already existing
+    const staticDirectory = isTypescript ? './static/ts' : './static/js'
     await fs.mkdir(sandboxDirectory)
-    await fs.cp(path.join(__dirname, './static'), sandboxDirectory, { recursive: true })
+    await fs.cp(path.join(__dirname, staticDirectory), sandboxDirectory, { recursive: true })
 
     await modifyFile(path.join(sandboxDirectory, 'package.json'), (jsonContents) => {
         const jsonObject = JSON.parse(jsonContents)
         jsonObject.name = sandboxDirectory
-        return JSON.stringify(jsonObject, null, 4)
+        return JSON.stringify(jsonObject, null, 2)
     })
     
     loadingSpinner.stop()
