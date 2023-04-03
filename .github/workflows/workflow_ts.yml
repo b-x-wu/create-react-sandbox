@@ -27,5 +27,5 @@ jobs:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
     - run: npm install
-    - run: cd .. && mkdir react-sandbox-test && cd react-sandbox-test && npx create-react-sandbox -t client_ts
-    - run: cd ../react-sandbox-test/client_ts && npm run build
+    - run: cd .. && mkdir react-sandbox-test && cd react-sandbox-test && npx create-react-sandbox client_ts -t
+    - run: ls -a && cd client_ts && npm run build
