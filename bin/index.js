@@ -68,13 +68,18 @@ function installDependencies(sandboxDirectory, onData, onErr, onExit) {
 async function main() {
     const { sandboxDirectory, typescript: isTypescript } = getCommandLineArgs()
 
-    process.stdout.write('Initializing the sandbox ')
+    process.stdout.write('Initializing the sandbox...')
     loadingSpinner.start(SPINNER_SPEED, SPINNER_OPTIONS)
 
-    // TODO: catch the directory already existing
-    const staticDirectory = isTypescript ? './static/ts' : './static/js'
-    await fs.mkdir(sandboxDirectory)
-    await fs.cp(path.join(__dirname, staticDirectory), sandboxDirectory, { recursive: true })
+    try {
+        const staticDirectory = isTypescript ? './static/ts' : './static/js'
+        await fs.mkdir(sandboxDirectory)
+        await fs.cp(path.join(__dirname, staticDirectory), sandboxDirectory, { recursive: true })
+    } catch (e) {
+        if (e.code === 'EEXIST') {
+            throw new Error(`Directory with name \`${sandboxDirectory}\` already exists.`)
+        }
+    }
 
     await modifyFile(path.join(sandboxDirectory, 'package.json'), (jsonContents) => {
         const jsonObject = JSON.parse(jsonContents)
@@ -105,4 +110,7 @@ async function main() {
     )
 }
 
-main().catch((err) => { console.log(err.message) })
+main().catch((err) => {
+    loadingSpinner.stop()
+    console.log('\n' + err.message)
+})
