@@ -15,6 +15,7 @@
   ],
   "homepage": "https://github.com/bruce-x-wu/create-react-sandbox",
   "dependencies": {
+    "command-line-args": "^5.2.1",
     "loading-spinner": "^1.2.1"
   }
 }

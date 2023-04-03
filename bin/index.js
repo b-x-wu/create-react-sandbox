@@ -4,19 +4,31 @@
 
 const fs = require('fs').promises;
 const path = require('node:path')
-const util = require('util')
 const loadingSpinner = require('loading-spinner')
 const { spawn } = require('node:child_process')
+const commandLineArgs = require('command-line-args')
 
-const spinnerOptions = { clearChar: true, hideCursor: true }
+const SPINNER_OPTIONS = { clearChar: true, hideCursor: true }
 const SPINNER_SPEED = 400
 
-if (process.argv.length < 3) {
-    console.error('Please speicify the project directory')
-    process.exit(1)
+/**
+ * Processes the command line arguments
+ * @returns {{ sandboxDirectory: string, typescript: boolean }} the command line options
+ */
+function getCommandLineArgs() {
+    const optionDefinitions = [
+        { name: 'sandboxDirectory', type: String, defaultOption: true },
+        { name: 'typescript', type: Boolean, alias: 't' }
+    ]
+    try {
+        return commandLineArgs(optionDefinitions, { stopAtFirstUnknown: true })
+    } catch (e) {
+        if (e.name === 'ALREADY_SET') {
+            throw new Error('Typescript flag was set more than once. The flag is only permitted to be set 0 or 1 times.')
+        }
+        throw new Error('Unknown error while parsing command line.\nCalls should follow the format: `npx create-react-sandbox <sandbox-name> [-t]`')
+    }
 }
-
-const sandboxDirectory = process.argv[2]
 
 /**
  * Changes the contents of a given file according to a modification function
@@ -54,9 +66,13 @@ function installDependencies(sandboxDirectory, onData, onErr, onExit) {
  * Run the main thread of the program
  */
 async function main() {
-    process.stdout.write('Initializing the sandbox ')
-    loadingSpinner.start(SPINNER_SPEED, spinnerOptions)
+    const options = getCommandLineArgs()
+    const sandboxDirectory = options.sandboxDirectory
 
+    process.stdout.write('Initializing the sandbox ')
+    loadingSpinner.start(SPINNER_SPEED, SPINNER_OPTIONS)
+
+    // TODO: catch the directory already existing
     await fs.mkdir(sandboxDirectory)
     await fs.cp(path.join(__dirname, './static'), sandboxDirectory, { recursive: true })
 
@@ -69,7 +85,7 @@ async function main() {
     loadingSpinner.stop()
     process.stdout.write('\rInitialized the sandbox!\n')
     process.stdout.write('Installing dependencies ')
-    loadingSpinner.start(SPINNER_SPEED, spinnerOptions)
+    loadingSpinner.start(SPINNER_SPEED, SPINNER_OPTIONS)
 
     installDependencies(
         sandboxDirectory, 
@@ -89,4 +105,4 @@ async function main() {
     )
 }
 
-main().catch((err) => { console.log(err) })
+main().catch((err) => { console.log(err.message) })
