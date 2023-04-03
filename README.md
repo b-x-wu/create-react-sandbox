@@ -1,6 +1,7 @@
 # Create React Sandbox
 
-[![Testing on Linux](https://github.com/bruce-x-wu/create-react-sandbox/actions/workflows/workflow.yml/badge.svg)](https://github.com/bruce-x-wu/create-react-sandbox/actions/workflows/workflow.yml)
+[![Test base module on Ubuntu](https://github.com/bruce-x-wu/create-react-sandbox/actions/workflows/workflow_js.yml/badge.svg)](https://github.com/bruce-x-wu/create-react-sandbox/actions/workflows/workflow_js.yml)
+[![Test TypeScript support on Ubuntu](https://github.com/bruce-x-wu/create-react-sandbox/actions/workflows/workflow_ts.yml/badge.svg)](https://github.com/bruce-x-wu/create-react-sandbox/actions/workflows/workflow_ts.yml)
 
 Create a lightweight React sandbox on your local system that runs like [Create React App](https://github.com/facebook/create-react-app) but without all the dependencies.
 
