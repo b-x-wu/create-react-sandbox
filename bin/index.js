@@ -4,83 +4,113 @@
 
 const fs = require('fs').promises;
 const path = require('node:path')
-const util = require('util')
 const loadingSpinner = require('loading-spinner')
 const { spawn } = require('node:child_process')
+const commandLineArgs = require('command-line-args')
 
-const fsOptions = { encoding: 'utf-8' }
-const spinnerOptions = { clearChar: true, hideCursor: true }
+const SPINNER_OPTIONS = { clearChar: true, hideCursor: true }
 const SPINNER_SPEED = 400
 
-if (process.argv.length < 3) {
-    console.error('Please speicify the project directory')
-    process.exit(1)
+/**
+ * Processes the command line arguments
+ * @returns {{ sandboxDirectory: string, typescript: boolean }} the command line options
+ */
+function getCommandLineArgs() {
+    const optionDefinitions = [
+        { name: 'sandboxDirectory', type: String, defaultOption: true },
+        { name: 'typescript', type: Boolean, alias: 't' }
+    ]
+    try {
+        return commandLineArgs(optionDefinitions, { stopAtFirstUnknown: true })
+    } catch (e) {
+        if (e.name === 'ALREADY_SET') {
+            throw new Error('Typescript flag was set more than once. The flag is only permitted to be set 0 or 1 times.')
+        }
+        throw new Error('Unknown error while parsing command line.\nCalls should follow the format: `npx create-react-sandbox <sandbox-name> [-t]`')
+    }
 }
 
-const sandboxDirectory = process.argv[2]
+/**
+ * Changes the contents of a given file according to a modification function
+ * @param {string} fileName 
+ * @param {(fileContents: string) => string} modifyFunction 
+ */
+async function modifyFile(fileName, modifyFunction) {
+    const fileContents = await fs.readFile(fileName, { encoding: 'utf-8' })
+    const newFileContents = modifyFunction(fileContents)
+    await fs.writeFile(fileName, newFileContents)
+}
 
-// create the sandbox directory
-fs.mkdir(sandboxDirectory).then(() => Promise.all([
-    // create the sandbox structure
-    fs.mkdir(path.join(sandboxDirectory, 'src')),
-    fs.mkdir(path.join(sandboxDirectory, 'public'))
-])).then(() => {
-    // get the contents of the files to be put into the sandbox
-    process.stdout.write('Retrieving sandbox configuration ')
-    loadingSpinner.start(SPINNER_SPEED, spinnerOptions)
-    return Promise.all([
-        fs.readFile(path.join(__dirname, './static/.babelrc'), fsOptions),
-        fs.readFile(path.join(__dirname, './static/index.html'), fsOptions),
-        fs.readFile(path.join(__dirname, './static/index.jsx'), fsOptions),
-        fs.readFile(path.join(__dirname, './static/webpack.config.js'), fsOptions),
-        fs.readFile(path.join(__dirname, './static/package.json'), fsOptions)
-    ])
-}).then((fileTexts) => {
-    // create the files in the sandbox
-    const [babelrcText, indexHtmlText, indexJsxText, webpackConfigText, packageJsonText] = fileTexts
-    const packageOptions = JSON.parse(packageJsonText)
-    packageOptions.name = sandboxDirectory
-
-    loadingSpinner.stop()
-    process.stdout.write('\rRetrieved sandbox configuration!\n')
-    process.stdout.write('Initializing the sandbox ')
-    loadingSpinner.start(SPINNER_SPEED, spinnerOptions)
-
-    return Promise.all([
-        fs.writeFile(path.join(sandboxDirectory, './.babelrc'), babelrcText),
-        fs.writeFile(path.join(sandboxDirectory, './public/index.html'), indexHtmlText),
-        fs.writeFile(path.join(sandboxDirectory, './src/index.jsx'), indexJsxText),
-        fs.writeFile(path.join(sandboxDirectory, './webpack.config.js'), webpackConfigText),
-        fs.writeFile(path.join(sandboxDirectory, './package.json'), JSON.stringify(packageOptions, null, 4))
-    ])
-}).then(() => {
-    // install the package dependencies
-    loadingSpinner.stop()
-    process.stdout.write('\rInitialized the sandbox!\n')
-    process.stdout.write('Installing dependencies ')
-    loadingSpinner.start(SPINNER_SPEED, spinnerOptions)
-
-    // https://stackoverflow.com/a/43285131
+/**
+ * Run npm install to install the dependencies
+ * https://stackoverflow.com/a/43285131
+ * @param {string} sandboxDirectory 
+ * @param {(chunk: any) => void} onData listener for when data is sent 
+ * @param {(chunk: any) => void} onErr listener for when error data is sent 
+ * @param {(code: number | null, signal: NodeJS.Signals | null) => void} onExit listener for when the process completes 
+ */
+function installDependencies(sandboxDirectory, onData, onErr, onExit) {
     const npmCommand = /^win/.test(process.platform) ? 'npm.cmd' : 'npm'
     const npmInit = spawn(npmCommand, ['install'], {
         cwd: './' + sandboxDirectory
     })
 
-    npmInit.stdout.on('data', (data) => {
-        loadingSpinner.stop()
-        process.stdout.write('\rInstalled dependencies!\n')
-        process.stdout.write(data.toString())
-    })
+    npmInit.stdout.on('data', onData)
 
-    npmInit.stderr.on('data', (data) => {
-        loadingSpinner.stop()
-        process.stdout.write('\rError installing dependencies!\n')
-        process.stdout.write(data.toString())
-    })
+    npmInit.stderr.on('data', onErr)
 
-    npmInit.on('exit', (code) => {
-        console.log(`React sandbox is set up. Run \`cd ${sandboxDirectory} && npm start\` to begin. Happy hacking!`)
+    npmInit.on('exit', onExit)
+}
+
+/**
+ * Run the main thread of the program
+ */
+async function main() {
+    const { sandboxDirectory, typescript: isTypescript } = getCommandLineArgs()
+
+    process.stdout.write('Initializing the sandbox...')
+    loadingSpinner.start(SPINNER_SPEED, SPINNER_OPTIONS)
+
+    try {
+        const staticDirectory = isTypescript ? './static/ts' : './static/js'
+        await fs.mkdir(sandboxDirectory)
+        await fs.cp(path.join(__dirname, staticDirectory), sandboxDirectory, { recursive: true })
+    } catch (e) {
+        if (e.code === 'EEXIST') {
+            throw new Error(`Directory with name \`${sandboxDirectory}\` already exists.`)
+        }
+    }
+
+    await modifyFile(path.join(sandboxDirectory, 'package.json'), (jsonContents) => {
+        const jsonObject = JSON.parse(jsonContents)
+        jsonObject.name = sandboxDirectory
+        return JSON.stringify(jsonObject, null, 2)
     })
-}).catch((err) => {
-    console.log(err)
+    
+    loadingSpinner.stop()
+    process.stdout.write('\rInitialized the sandbox!\n')
+    process.stdout.write('Installing dependencies ')
+    loadingSpinner.start(SPINNER_SPEED, SPINNER_OPTIONS)
+
+    installDependencies(
+        sandboxDirectory, 
+        (data) => {
+            loadingSpinner.stop()
+            process.stdout.write('\rInstalled dependencies!\n')
+            process.stdout.write(data.toString())
+        },
+        (data) => {
+            loadingSpinner.stop()
+            process.stdout.write('\rError installing dependencies!\n')
+            throw new Error(data.toString())
+        },
+        () => {
+            console.log(`React sandbox is set up. Run \`cd ${sandboxDirectory} && npm start\` to begin. Happy hacking!`)
+        }
+    )
+}
+
+main().catch((err) => {
+    loadingSpinner.stop()
+    console.log('\n' + err.message)
 })
