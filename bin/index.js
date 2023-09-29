@@ -83,7 +83,7 @@ async function main() {
         throw new Error('Unknown error copying config files.')
     }
 
-    await modifyFile(path.join('./', sandboxDirectory, 'package.json'), (jsonContents) => {
+    await modifyFile(path.join(sandboxDirectory, 'package.json'), (jsonContents) => {
         const jsonObject = JSON.parse(jsonContents)
         jsonObject.name = sandboxDirectory
         return JSON.stringify(jsonObject, null, 2)
