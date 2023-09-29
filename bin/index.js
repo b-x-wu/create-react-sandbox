@@ -79,6 +79,8 @@ async function main() {
         if (e.code === 'EEXIST') {
             throw new Error(`Directory with name \`${sandboxDirectory}\` already exists.`)
         }
+
+        throw new Error('Unknown error copying config files.')
     }
 
     await modifyFile(path.join('./', sandboxDirectory, 'package.json'), (jsonContents) => {
