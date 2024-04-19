@@ -1,0 +1,41 @@
+name: Test Create React Sandbox
+
+on:
+  push:
+    branches: [ "main", "dev/eslint" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [16.x, 18.x, 20.x]
+        flags: ["", "-t"]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "npm"
+
+      - name: Install Package
+        run: npm ci && npm link
+
+      - name: Create Testing Environment
+        run: mkdir temp
+
+      - name: Run Package Init Script
+        run: npx create-react-sandbox client ${{ matrix.flags }}
+        working-directory: ./temp
+
+      - name: Run Package Build Script
+        run: npm run build
+        working-directory: ./temp/client
+
