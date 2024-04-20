@@ -15,7 +15,7 @@
   ],
   "homepage": "https://github.com/b-x-wu/create-react-sandbox",
   "dependencies": {
-    "command-line-args": "^5.2.1",
-    "loading-spinner": "^1.2.1"
+    "loading-spinner": "^1.2.1",
+    "yargs": "^17.7.2"
   }
 }
