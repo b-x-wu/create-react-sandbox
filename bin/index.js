@@ -68,6 +68,29 @@ function installDependencies(sandboxDirectory, onData, onErr, onExit) {
 }
 
 /**
+ * Configure Eslint depending on specification
+ * @param sandboxDirectory the name of the directory housing the sandbox
+ * @param isTypescript if the sandbox uses typescript or not
+ * @param isEslint if the sandbox uses eslint or not
+ */
+async function handleEslint(sandboxDirectory, isTypescript, isEslint) {
+    if (!isEslint) {
+	await fs.unlink(path.join(sandboxDirectory, 'eslint.config.js'))
+	return
+    }
+
+    await modifyFile(path.join(sandboxDirectory, 'package.json'), (packageJson) => {
+	const packageObject = JSON.parse(packageJson)
+	packageObject.devDependencies['eslint'] = '^8.57.0'
+	packageObject.devDependencies['@eslint/js'] = '^9.0.0'
+	if (isTypescript) {
+	    packageObject.devDependencies['typescript-eslint'] = '^7.6.0'
+	}
+	return JSON.stringify(packageObject, null, 2)
+    })
+}
+
+/**
  * Run the main thread of the program
  */
 async function main() {
@@ -93,6 +116,8 @@ async function main() {
         jsonObject.name = sandboxDirectory
         return JSON.stringify(jsonObject, null, 2)
     })
+
+    await handleEslint(sandboxDirectory, isTypescript, isEslint)
     
     loadingSpinner.stop()
     process.stdout.write('\rInitialized the sandbox!\n')
@@ -121,3 +146,4 @@ main().catch((err) => {
     loadingSpinner.stop()
     console.log('\n' + err.message)
 })
+

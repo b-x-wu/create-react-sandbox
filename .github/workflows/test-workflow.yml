@@ -12,8 +12,8 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [16.x, 18.x, 20.x]
-        flags: ["", "-t"]
+        node-version: [18.x, 20.x]
+        flags: ["", "-t", "-l", "-t -l"]
 
     steps:
       - name: Checkout
@@ -34,6 +34,11 @@ jobs:
       - name: Run Package Init Script
         run: npx create-react-sandbox ${{ matrix.flags }}
         working-directory: ./temp
+
+      - name: Run linter
+        if: ${{ contains(matrix.flags, '-l') }}
+        run: npx eslint
+        working-directory: ./temp/app
 
       - name: Run Package Build Script
         run: npm run build
