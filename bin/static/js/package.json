@@ -11,6 +11,7 @@
     "keywords": [],
     "author": "",
     "license": "ISC",
+    "type": "module",
     "dependencies": {
       "react": "^18.2.0",
       "react-dom": "^18.2.0"

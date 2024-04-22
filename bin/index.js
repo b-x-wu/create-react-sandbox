@@ -1,12 +1,10 @@
 #! /usr/bin/env node
 
-// guided by https://blog.shahednasser.com/how-to-create-a-npx-tool/
-
 const fs = require('fs').promises;
 const path = require('node:path')
 const loadingSpinner = require('loading-spinner')
 const { spawn } = require('node:child_process')
-const commandLineArgs = require('command-line-args')
+const yargs = require('yargs/yargs')
 
 const SPINNER_OPTIONS = { clearChar: true, hideCursor: true }
 const SPINNER_SPEED = 400
@@ -16,18 +14,25 @@ const SPINNER_SPEED = 400
  * @returns {{ sandboxDirectory: string, typescript: boolean }} the command line options
  */
 function getCommandLineArgs() {
-    const optionDefinitions = [
-        { name: 'sandboxDirectory', type: String, defaultOption: true },
-        { name: 'typescript', type: Boolean, alias: 't' }
-    ]
-    try {
-        return commandLineArgs(optionDefinitions, { stopAtFirstUnknown: true })
-    } catch (e) {
-        if (e.name === 'ALREADY_SET') {
-            throw new Error('Typescript flag was set more than once. The flag is only permitted to be set 0 or 1 times.')
-        }
-        throw new Error('Unknown error while parsing command line.\nCalls should follow the format: `npx create-react-sandbox <sandbox-name> [-t]`')
-    }
+    return yargs(process.argv.slice(2))
+	.option('name', {
+	    alias: 'n',
+	    describe: 'name of the app',
+	    default: 'app',
+	    type: 'string',
+	})
+	.option('typescript', {
+	    alias: 't',
+	    type: 'boolean',
+	    default: false,
+	})
+	.option('eslint', {
+	    alias: 'l',
+	    type: 'boolean',
+	    default: false,
+	})
+	.help()
+	.parse()
 }
 
 /**
@@ -63,10 +68,33 @@ function installDependencies(sandboxDirectory, onData, onErr, onExit) {
 }
 
 /**
+ * Configure Eslint depending on specification
+ * @param sandboxDirectory the name of the directory housing the sandbox
+ * @param isTypescript if the sandbox uses typescript or not
+ * @param isEslint if the sandbox uses eslint or not
+ */
+async function handleEslint(sandboxDirectory, isTypescript, isEslint) {
+    if (!isEslint) {
+	await fs.unlink(path.join(sandboxDirectory, 'eslint.config.js'))
+	return
+    }
+
+    await modifyFile(path.join(sandboxDirectory, 'package.json'), (packageJson) => {
+	const packageObject = JSON.parse(packageJson)
+	packageObject.devDependencies['eslint'] = '^8.57.0'
+	packageObject.devDependencies['@eslint/js'] = '^9.0.0'
+	if (isTypescript) {
+	    packageObject.devDependencies['typescript-eslint'] = '^7.6.0'
+	}
+	return JSON.stringify(packageObject, null, 2)
+    })
+}
+
+/**
  * Run the main thread of the program
  */
 async function main() {
-    const { sandboxDirectory, typescript: isTypescript } = getCommandLineArgs()
+    const { name: sandboxDirectory, typescript: isTypescript, eslint: isEslint } = getCommandLineArgs()
 
     process.stdout.write('Initializing the sandbox...')
     loadingSpinner.start(SPINNER_SPEED, SPINNER_OPTIONS)
@@ -88,6 +116,8 @@ async function main() {
         jsonObject.name = sandboxDirectory
         return JSON.stringify(jsonObject, null, 2)
     })
+
+    await handleEslint(sandboxDirectory, isTypescript, isEslint)
     
     loadingSpinner.stop()
     process.stdout.write('\rInitialized the sandbox!\n')
@@ -116,3 +146,4 @@ main().catch((err) => {
     loadingSpinner.stop()
     console.log('\n' + err.message)
 })
+
