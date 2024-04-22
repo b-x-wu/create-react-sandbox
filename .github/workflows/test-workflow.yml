@@ -1,8 +1,6 @@
 name: Test Create React Sandbox
 
 on:
-  push:
-    branches: [ "main", "dev/eslint" ]
   pull_request:
     branches: [ "main" ]
   workflow_dispatch:
