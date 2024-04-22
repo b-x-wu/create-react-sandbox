@@ -1,11 +1,10 @@
 # Create React Sandbox
 
-[![Test base module on Ubuntu](https://github.com/bruce-x-wu/create-react-sandbox/actions/workflows/workflow_js.yml/badge.svg)](https://github.com/bruce-x-wu/create-react-sandbox/actions/workflows/workflow_js.yml)
-[![Test TypeScript support on Ubuntu](https://github.com/bruce-x-wu/create-react-sandbox/actions/workflows/workflow_ts.yml/badge.svg)](https://github.com/bruce-x-wu/create-react-sandbox/actions/workflows/workflow_ts.yml)
+[![Tests](https://github.com/b-x-wu/create-react-sandbox/actions/workflows/test-workflow.yml/badge.svg)](https://github.com/b-x-wu/create-react-sandbox/actions/workflows/test-workflow.yml)
+
+![NPM Version](https://img.shields.io/npm/v/create-react-sandbox)
 
 Create a lightweight React sandbox on your local system that runs like [Create React App](https://github.com/facebook/create-react-app) but without all the dependencies.
-
-So far, Create React Sandbox has been tested on Windows and on an Ubuntu Github workflow. If something does not work please [file an issue](https://github.com/bruce-x-wu/create-react-sandbox/issues).
 
 ## Getting Started
 
@@ -18,22 +17,41 @@ npm install -g create-react-sandbox
 To use, run
 
 ```bash
-npx create-react-sandbox react-sandbox
-cd react-sandbox
+npx create-react-sandbox
+cd app
+npm start
+```
+
+The sandbox app will run on [http://localhost:3001](http://localhost:3001) (or if you have a `PORT` environment variable set, it will run on that instead).
+
+To build your code, run `npm run build`. The build output will be in the `dist` directory.
+
+## Configuration
+
+To set the name of your sandbox, use the `--name` option.
+
+```bash
+npx create-react-sandbox --name project-name
+cd project-name
 npm start
 ```
 
 If you would like to use TypeScript in your project, run with the `-t` flag.
 
 ```bash
-npx create-react-sandbox react-sandbox-with-typescript -t
-cd react-sandbox-with-typescript
+npx create-react-sandbox -t
+cd app
 npm start
 ```
 
-In either case, the sandbox app will run on [http://localhost:3001](http://localhost:3001) (or if you have a `PORT` environment variable set, it will run on that instead).
+To add [Eslint](https://eslint.org) support, run with the `-l` flag.
 
-To build your code, run `npm run build`. The build output will be in the `dist` directory.
+```bash
+npx create-react-sandbox -l # or `npx create-react-sandbox -t -l` for ts and eslint support
+cd app
+npx eslint
+npm start
+```
 
 ## Use Cases
 
