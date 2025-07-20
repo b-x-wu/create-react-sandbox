@@ -1,8 +1,8 @@
 {
   "name": "create-react-sandbox",
-  "version": "1.3.0",
+  "version": "1.3.1",
   "description": "Create a lightweight React sandbox on your local system that runs like Create React App but without all the dependencies.",
-  "author": "B Wu <wu.bruce.x@gmail.com>",
+  "author": "Bridgette Wu <wu.bruce.x@gmail.com>",
   "license": "ISC",
   "scripts": { },
   "bin": {
